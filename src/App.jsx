@@ -1,8 +1,8 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import AppBar from './components/AppBar';
 import { Switch } from 'react-router-dom';
 import * as authOperations from './redux/auth/auth-operations';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import PrivateRoute from './components/Routes/PrivateRoute';
 import PublicRoute from './components/Routes/PublicRoute';
 import Container from './components/Container/Container';
@@ -23,38 +23,36 @@ const ContactView = lazy(() =>
   import('./views/ContactView.jsx' /* webpackChunkName: "Contact-view" */),
 );
 
-class App extends Component {
-  componentDidMount() {
-    this.props.onGetCurrentUser();
-  }
+export default function App() {
+  const dispatch = useDispatch();
 
-  render() {
-    return (
-      <Container>
-        <AppBar />
+  useEffect(() => {
+    dispatch(authOperations.getCurrentUser());
+  }, [dispatch]);
 
-        <Suspense fallback={<p>Loading in progress...</p>}>
-          <Switch>
-            <PublicRoute exact path="/" component={HomeView} />
+  return (
+    <Container>
+      <AppBar />
 
-            <PublicRoute
-              path={'/register'}
-              restricted
-              component={RegisterView}
-            />
+      <Suspense fallback={<p>Loading in progress...</p>}>
+        <Switch>
+          <PublicRoute exact path="/">
+            <HomeView />
+          </PublicRoute>
 
-            <PublicRoute path={'/login'} restricted component={LoginView} />
+          <PublicRoute path={'/register'} restricted>
+            <RegisterView />
+          </PublicRoute>
 
-            <PrivateRoute path={'/contacts'} component={ContactView} />
-          </Switch>
-        </Suspense>
-      </Container>
-    );
-  }
+          <PublicRoute path={'/login'} restricted>
+            <LoginView />
+          </PublicRoute>
+
+          <PrivateRoute path={'/contacts'} >
+            <ContactView />
+            </PrivateRoute>
+        </Switch>
+      </Suspense>
+    </Container>
+  );
 }
-
-const mapDispatchToProps = {
-  onGetCurrentUser: authOperations.getCurrentUser,
-};
-
-export default connect(null, mapDispatchToProps)(App);

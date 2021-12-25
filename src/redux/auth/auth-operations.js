@@ -31,8 +31,8 @@ export const logIn = credentials => async dispatch => {
     const response = await axios.post('/users/login', credentials);
     token.set(response.data.token);
     dispatch(authActions.loginSuccess(response.data));
-    console.log(response);
-  } catch (error) {
+  }
+  catch (error) {
     dispatch(authActions.loginError(error.message));
   }
 };

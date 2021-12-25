@@ -1,98 +1,118 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
+import React, { useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+// import PropTypes from 'prop-types';
 import styles from './SingnupForm.module.css';
 import * as authOperations from '../../redux/auth/auth-operations';
 
-class SignupForm extends Component {
-  state = {
-    name: '',
-    email: '',
-    password: '',
-  };
+// const mapDispatchToProps = {
+//   onRegister: authOperations.register,
+// };
+// export default connect(null, mapDispatchToProps)(SignupForm);
 
-  handleChange = ({ target: { name, value } }) => {
-    this.setState({ [name]: value });
-  };
+export default function SignupForm() {
+  const dispatch = useDispatch();
 
-  handleSubmit = event => {
-    event.preventDefault();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-    if (!this.state.name || !this.state.email || !this.state.password) {
+  const handleChange = useCallback(e => {
+    const { name, value } = e.currentTarget;
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+
+      case 'email':
+        setEmail(value);
+        break;
+
+      case 'password':
+        setPassword(value);
+        break;
+
+      default:
+        console.warn(`Тип поля name - ${name} не обрабатывается`);
+
+        break;
+    }
+  }, []);
+
+  const handleSubmit = e => {
+    e.preventDefault();
+
+    if (!name || !email || !password) {
       alert('Fill the Registration form');
       return;
     }
-    this.props.onRegister(this.state);
 
-    this.setState({ name: '', email: '', password: '' });
+    dispatch(authOperations.register({ name, email, password }));
+
+    setName('');
+    setEmail('');
+    setPassword('');
   };
 
-  render() {
-    const { name, email, password } = this.state;
+  return (
+    <div className={styles.container}>
+      <h2 className={styles.title}>Страница регистрации</h2>
 
-    return (
-      <div className={styles.container}>
-        <h2 className={styles.title}>Registration Page</h2>
+      <form onSubmit={handleSubmit} className={styles.input_menu}>
+        <div className={styles.input_item}>
+          <label htmlFor="name" className={styles.form_label}>
+            Имя
+          </label>
 
-        <form onSubmit={this.handleSubmit} className={styles.input_menu}>
-          <div className={styles.input_item}>
-            <label htmlFor="name" className={styles.form_label}>
-              Name
-            </label>
+          <input
+            type="text"
+            className={styles.input}
+            name="name"
+            value={name}
+            onChange={handleChange}
+            autoComplete="false"
+          />
+        </div>
 
-            <input
-              type="text"
-              className={styles.input}
-              name="name"
-              value={name}
-              onChange={this.handleChange}
-            />
-          </div>
+        <div className={styles.input_item}>
+          <label htmlFor="email" className={styles.form_label}>
+            Почта
+          </label>
 
-          <div className={styles.input_item}>
-            <label htmlFor="email" className={styles.form_label}>
-              Email address
-            </label>
+          <input
+            type="email"
+            className={styles.input}
+            aria-describedby="emailHelp"
+            name="email"
+            value={email}
+            onChange={handleChange}
+            autoComplete="false"
+          />
+        </div>
 
-            <input
-              type="email"
-              className={styles.input}
-              aria-describedby="emailHelp"
-              name="email"
-              value={email}
-              onChange={this.handleChange}
-            />
-          </div>
+        <div className={styles.input_item}>
+          <label htmlFor="password" className={styles.form_label}>
+            Пароль
+          </label>
 
-          <div className={styles.input_item}>
-            <label htmlFor="password" className={styles.form_label}>
-              Password
-            </label>
+          <input
+            type="password"
+            className={styles.input}
+            placeholder={'More than 7 symbols'}
+            name="password"
+            value={password}
+            onChange={handleChange}
+            autoComplete="false"
+          />
+        </div>
 
-            <input
-              type="password"
-              className={styles.input}
-              placeholder={'More than 7 symbols'}
-              name="password"
-              value={password}
-              onChange={this.handleChange}
-            />
-          </div>
-
-          <button type="submit" className={styles.sbt_button}>
-            Submit
-          </button>
-        </form>
-      </div>
-    );
-  }
+        <button type="submit" className={styles.sbt_button}>
+          Зарегистрировать
+        </button>
+      </form>
+    </div>
+  );
 }
 
-SignupForm.propTypes = {
-  onRegister: PropTypes.func.isRequired,
-};
-
-const mapDispatchToProps = {
-  onRegister: authOperations.register,
-};
-export default connect(null, mapDispatchToProps)(SignupForm);
+// SignupForm.propTypes = {
+//   onRegister: PropTypes.func.isRequired,
+// };

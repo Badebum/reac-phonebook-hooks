@@ -1,10 +1,15 @@
 import React from 'react';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from './Filter.module.css';
 import * as actions from '../../redux/contact/contact-actions';
 import { getFilter } from '../../redux/contact/contact-selector';
 
-const Filter = ({ value, onChange }) => {
+export default function Filter() {
+  const value = useSelector(getFilter);
+  const dispatch = useDispatch();
+
+  const onChange = e => dispatch(actions.changeFilter(e.target.value));
+
   return (
     <label className={styles.titel}>
       Search
@@ -18,14 +23,4 @@ const Filter = ({ value, onChange }) => {
       />
     </label>
   );
-};
-
-const mapStateToProps = state => ({
-  filter: getFilter(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onChange: e => dispatch(actions.changeFilter(e.target.value)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Filter);
+}

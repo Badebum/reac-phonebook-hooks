@@ -1,80 +1,91 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { useCallback, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import * as authOperations from '../../redux/auth/auth-operations';
-import PropTypes from 'prop-types';
 import styles from './LoginForm.module.css';
 
-class LoginView extends Component {
-  state = {
-    email: '',
-    password: '',
-  };
+export default function LoginView() {
+  const dispatch = useDispatch();
 
-  handleChange = ({ target: { name, value } }) => {
-    this.setState({ [name]: value });
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  handleSubmit = e => {
-    e.preventDefault();
+  const handleChange = useCallback(e => {
+    const { name, value } = e.currentTarget;
 
-    this.props.onLogin(this.state);
+    switch (name) {
+      case 'email':
+        setEmail(value);
+        break;
 
-    this.setState({ email: '', password: '' });
-  };
+      case 'password':
+        setPassword(value);
+        break;
 
-  render() {
-    const { email, password } = this.state;
+      default:
+        console.warn(`Тип поля name - ${name} не обрабатывается`);
 
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Страница логина</h1>
+        break;
+    }
+  }, []);
 
-        <form
-          className={styles.input_menu}
-          onSubmit={this.handleSubmit}
-          autoComplete="off"
-        >
-          <div className={styles.input_item}>
-            <label className={styles.form_label}>
-              Почта
-              <input
-                className={styles.input}
-                type="email"
-                name="email"
-                value={email}
-                onChange={this.handleChange}
-              />
-            </label>
-          </div>
+  const handleSubmit = useCallback(
+    e => {
+      e.preventDefault();
 
-          <div className={styles.input_item}>
-            <label className={styles.form_label}>
-              Пароль
-              <input
-                className={styles.input}
-                type="password"
-                name="password"
-                value={password}
-                onChange={this.handleChange}
-              />
-            </label>
-          </div>
+      if (!email || !password) {
+        alert('Fill the Login form');
+        return;
+      }
 
-          <button type="submit" className={styles.sbt_button}>
-            Войти
-          </button>
-        </form>
-      </div>
-    );
-  }
+      dispatch(authOperations.logIn({ email, password }));
+
+      setEmail('');
+      setPassword('');
+    },
+    [email, password, dispatch],
+  );
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Страница логина</h1>
+
+      <form
+        className={styles.input_menu}
+        onSubmit={handleSubmit}
+        autoComplete="off"
+      >
+        <div className={styles.input_item}>
+          <label className={styles.form_label}>
+            Почта
+            <input
+              className={styles.input}
+              type="email"
+              name="email"
+              value={email}
+              onChange={handleChange}
+              autoComplete="false"
+            />
+          </label>
+        </div>
+
+        <div className={styles.input_item}>
+          <label className={styles.form_label}>
+            Пароль
+            <input
+              className={styles.input}
+              type="password"
+              name="password"
+              value={password}
+              onChange={handleChange}
+              autoComplete="false"
+            />
+          </label>
+        </div>
+
+        <button type="submit" className={styles.sbt_button}>
+          Войти
+        </button>
+      </form>
+    </div>
+  );
 }
-
-LoginView.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-};
-
-const mapDispatchToProps = {
-  onLogin: authOperations.logIn,
-};
-
-export default connect(null, mapDispatchToProps)(LoginView);

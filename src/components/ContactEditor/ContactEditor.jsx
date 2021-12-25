@@ -1,91 +1,92 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { useState, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from './Contact.module.css';
 import * as operations from '../../redux/contact/contact.operations';
 import * as contactsSelectors from '../../redux/contact/contact-selector';
 
-class ContactEditor extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+export default function ContactEditor() {
+  const dispatch = useDispatch();
+  const contacts = useSelector(contactsSelectors.getAllContacts);
 
-  handlerChenge = e => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+
+  const handleChange = useCallback(e => {
     const { name, value } = e.currentTarget;
-    this.setState({
-      [name]: value,
-    });
+
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+
+      case 'number':
+        setNumber(value);
+        break;
+
+      default:
+        console.warn(`Тип поля name - ${name} не обрабатывается`);
+        break;
+    }
+  }, []);
+
+  const reset = () => {
+    setName('');
+    setNumber('');
   };
 
-  reset = () => {
-    this.setState({ name: '', number: '' });
-  };
+  const handleSubmit = useCallback(
+    e => {
+      e.preventDefault();
 
-  handleSubmit = e => {
-    e.preventDefault();
+      if (contacts.some(elm => elm.name.toLowerCase() === name.toLowerCase())) {
+        return alert(`${name} is already in contacts`);
+      }
+      if (
+        contacts.some(elm => elm.number.toLowerCase() === number.toLowerCase())
+      ) {
+        return alert(`${number} is already in contacts`);
+      }
 
-    const { name, number } = this.state;
-    const { contacts } = this.props;
+      if (name !== '') {
+        dispatch(operations.addContact({ name, number }));
 
-    if (contacts.some(elm => elm.name.toLowerCase() === name.toLowerCase())) {
-      return alert(`${name} is already in contacts`);
-    }
-    if (
-      contacts.some(elm => elm.number.toLowerCase() === number.toLowerCase())
-    ) {
-      return alert(`${number} is already in contacts`);
-    }
+        reset();
+        return;
+      }
+      alert('ERROR');
+    },
+    [dispatch, contacts, name, number],
+  );
 
-    if (this.state.name !== '') {
-      this.props.addContact(this.state);
-      this.reset();
-      return;
-    }
-    alert('ERROR');
-  };
+  return (
+    <form onSubmit={handleSubmit} className={styles.container}>
+      <p>Имя</p>
+      <input
+        type="text"
+        className={styles.input}
+        value={name}
+        onChange={handleChange}
+        name="name"
+        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+        title="Имя может состоять только из букв, апострофа, тире и пробелов. Например Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan и т. п."
+        required
+      />
 
-  render() {
-    const { name, number } = this.state;
+      <p>Номер телефона</p>
+      <input
+        type="tel"
+        className={styles.input}
+        value={number}
+        onChange={handleChange}
+        name="number"
+        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        title="Номер телефона должен состоять цифр и может содержать пробелы, тире, круглые скобки и может начинаться с +"
+        required
+      />
 
-    return (
-      <form onSubmit={this.handleSubmit} className={styles.container}>
-        <p>First name</p>
-        <input
-          type="text"
-          className={styles.input}
-          value={name}
-          onChange={this.handlerChenge}
-          name="name"
-          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-          title="Имя может состоять только из букв, апострофа, тире и пробелов. Например Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan и т. п."
-          required
-        />
-        <p>Phone number</p>
-        <input
-          type="tel"
-          className={styles.input}
-          value={number}
-          onChange={this.handlerChenge}
-          name="number"
-          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Номер телефона должен состоять цифр и может содержать пробелы, тире, круглые скобки и может начинаться с +"
-          required
-        />
-
-        <button type="submit" className={styles.sub_btn}>
-          save contact
-        </button>
-      </form>
-    );
-  }
+      <button type="submit" className={styles.sub_btn}>
+        save contact
+      </button>
+    </form>
+  );
 }
-
-const mapStateToProps = state => ({
-  contacts: contactsSelectors.getAllContacts(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  addContact: contactForm => dispatch(operations.addContact(contactForm)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(ContactEditor);
